@@ -3,9 +3,9 @@
 | Milestone | Status | Shipped in |
 |---|---|---|
 | SU0 — the spec | ✅ Shipped | [#1](https://github.com/sourceplane/sveltekit-auth/pull/1) |
-| SU1 — the auth app on Workers | In progress |  |
+| SU1 — the auth app on Workers | ✅ Shipped | [#2](https://github.com/sourceplane/sveltekit-auth/pull/2) |
 | SU2 — the data | Not needed: JWT sessions persist nothing | — |
-| SU3 — ready to instantiate | Not started |  |
+| SU3 — ready to instantiate | In progress |  |
 | SU4 — a baseline | Not started |  |
 
 ## What is proven, and how
