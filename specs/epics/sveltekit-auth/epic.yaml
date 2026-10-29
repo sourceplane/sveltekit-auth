@@ -9,7 +9,7 @@ metadata:
 spec:
   title: "Auth.js's SvelteKit example on Cloudflare Workers"
   summary: "Auth.js's SvelteKit example (nextauthjs/sveltekit-auth-example) — a home page, a sign-in page, a protected page and a sign-out over @auth/sveltekit with the example's 26 OAuth providers and JWT sessions — runs on Cloudflare Workers + Static Assets through @sveltejs/adapter-cloudflare, offers each provider only once its keys are stored (and says what to connect when none is), gets its AUTH_SECRET generated on each environment's Worker by the deploy instead of typed, and becomes an Orun baseline that takes a new site from nothing to live on stage and prod in one landing. No database: the sessions persist nothing server-side, so there is no data rung."
-  state: started
+  state: completed
   milestones:
     - name: "SU0 — the spec"
       exitCriteria:

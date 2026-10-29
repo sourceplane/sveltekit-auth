@@ -5,8 +5,8 @@ Auth.js's [SvelteKit example](https://github.com/nextauthjs/sveltekit-auth-examp
 sign-out, over [`@auth/sveltekit`](https://authjs.dev/reference/sveltekit)
 with the example's 26 OAuth providers — running on **Cloudflare Workers +
 Static Assets** through SvelteKit's own
-[`@sveltejs/adapter-cloudflare`](https://svelte.dev/docs/kit/adapter-cloudflare).
-It is being packaged as an **Orun baseline** that takes a new site from
+[`@sveltejs/adapter-cloudflare`](https://svelte.dev/docs/kit/adapter-cloudflare),
+and packaged as an **Orun baseline**: one command takes a new site from
 nothing to live on stage and prod, in its own repository, under its own
 name, in ONE landing.
 
@@ -14,12 +14,52 @@ Sessions are the example's: Auth.js's encrypted JWT cookie, so there is no
 database. Each provider is offered once its keys are stored as the site's
 secrets, so the site goes live with none connected and its sign-in page
 says what to connect; the AUTH_SECRET that seals the sessions is generated
-on each environment's Worker by its first deploy, so nothing is typed. The
-design, the milestones and the as-built status are in
+on each environment's Worker by its first deploy, so nothing is typed. What
+the baseline adds is everything needed to make a copy of it somebody
+else's, built the way [cirrus-baseline](https://github.com/sourceplane/cirrus-baseline)
+is. The design, the milestones and the as-built status are in
 [`specs/epics/sveltekit-auth`](specs/epics/sveltekit-auth/README.md).
 ISC, © 2022-2024 Balázs Orbán (`apps/web/LICENSE`).
 
-## What is here
+## Instantiating a site
+
+```bash
+git clone --depth 1 --branch <baseline-tag> https://github.com/sourceplane/sveltekit-auth
+cd sveltekit-auth
+orun new --blueprint repo-blueprint.yaml --out ~/sites/acme-accounts --run-hooks --resume \
+  --set reponame=acme-accounts --set productname="Acme Accounts" \
+  --set githuborg=acme-inc --set subdomain=<workers-dev-subdomain>
+```
+
+Or, once the platform's registry lists it, from the Orun console (Baselines →
+`sveltekit-auth` → Build). Two phases: **`01-product`** creates the
+repository and lands the whole site as ONE pull request — intent, CI,
+tooling, the site and its tests — and one convergence builds it, gives each
+environment's Worker its AUTH_SECRET and deploys it to stage and prod;
+**`03-docs`** records the live deployment from probed facts.
+**[BOOTSTRAP.md](BOOTSTRAP.md)** is the operator guide;
+[docs/phases/](docs/phases/README.md) has a page per phase.
+
+The new repository receives the **site only** — the app and its tests, its
+CI, its tooling, a README of its own and its operating contract — renamed
+throughout to the site's name, repository and Cloudflare Worker, with
+Auth.js's own names (`SvelteKitAuth`, `sveltekit-auth-example`) and the
+example's licence left as they are. None of this repository's machinery
+ships.
+
+| What makes it a baseline | Where |
+|---|---|
+| The console card (inputs, secrets, programme) | `blueprint.yaml` |
+| The build document (modules, phases, hooks) | `repo-blueprint.yaml` |
+| This tree's identity, and the bootstrap's task contracts | `.baseline/` |
+| The rename engine | `tooling/rebrand/rebrand.mjs` |
+| The bootstrap's helpers (deferrals, redeploy marker, work-tree strip) | `tooling/bootstrap/` |
+| The deployment-record renderer | `hooks/render-deployment-docs.sh` |
+| The site's README and context pack | `.baseline/product/README.md`, `ai/context/` |
+| The baseline's tests: contract, leak, offline bootstrap, end to end | `testing/`, `.github/workflows/baseline.yml` |
+| Cutting a `baseline-vN` tag | `.github/workflows/tag.yml` |
+
+## What is here (the site)
 
 | Surface | Where |
 |---|---|
@@ -76,7 +116,7 @@ optional Orun secrets per environment (`orun secrets set AUTH_GITHUB_ID
 --env stage`), pushed to the Worker by its next deploy; the OAuth app's
 callback URL is `<origin>/auth/callback/<provider>`. The component carries
 secret refs for the nine providers upstream's `.env.example` names; the
-keys of every other provider are in `apps/web/src/server/providers.ts`.
+site's README ("Sign-in providers") says how to deploy the others.
 
 ## How it maps to Vercel
 
@@ -89,9 +129,12 @@ keys of every other provider are in `apps/web/src/server/providers.ts`.
 | `$env/dynamic/private` from the platform's env | the Worker's bindings (`platform.env`), read per request; `.env` locally, as upstream, for `vite dev` and `wrangler dev` alike |
 | sessions: Auth.js's JWT cookie | the same; no database |
 | Deploy on push | Orun deploys `<repo>-web-{stage,prod}` on merge to `main` (`apps/web/component.yaml`), smoke-tested |
+| "Deploy with Vercel" (clone the example) | `orun new --blueprint repo-blueprint.yaml` — a new repository, branded, deployed |
 
 ## CI
 
 | Workflow | What it runs | Ships to a site |
 |---|---|---|
 | `ci.yml` | the Orun pipeline, and the only workflow a site carries: `orun plan --changed`, then one job per lane. A pull request runs the verify lanes (the site built and dry-deployed per environment, no secret pushed; they do not typecheck, lint or run the tests), except the bootstrap's own landings (`orun/BASE-*`), where `plan` alone is the check; a merge deploys stage → prod. It plans nothing while `intent.yaml` names the placeholder workspace `ws_CHANGE_ME`, as this repository does. A manual run (Orunbase's Deploy button, or Run workflow on `main`) plans the environment and components it names under the push-to-main trigger, so they deploy as a merge deploys them | yes |
+| `baseline.yml` | the baseline's own tiers: contract tests, the blueprint read by the pinned orun, the leak gate, the offline bootstrap with the site's own plan, the site installed, type-checked, linted, tested, built and dry-deployed in the lane's tree and served — with no secret (the smoke refuses it), with one (every page), and with GitHub's keys (the authorize URL, a session, sign-out) (`testing/e2e.test.sh`, before every tag) | no |
+| `tag.yml` | cuts a `baseline-vN` tag (manual) | no |
