@@ -1,0 +1,121 @@
+apiVersion: sourceplane.io/v1
+kind: Component
+metadata:
+  name: web
+  description: The Auth.js sign-in example (SvelteKit on Cloudflare Workers + Static Assets via @sveltejs/adapter-cloudflare, per environment)
+spec:
+  type: cloudflare-workers-assets-turbo
+  lifecycle: production
+  owner: platform
+  # Its pages, attached to it in the workspace's catalog: what the Docs
+  # library shows for it, and what the catalog's docs and runbook checks read.
+  # Generated from what this manifest and its sources declare.
+  docs:
+    overview: docs/overview.md
+    pages:
+      - { path: docs/architecture.md, role: architecture, title: Architecture }
+      - { path: docs/runbook.md, role: runbook, title: Runbook }
+  # `app`, not `web`: a domain and a component share one name space in the
+  # catalog, and a domain called `web` hid this component from it.
+  domain: app
+  path: apps/web
+  # Its own lane per environment: the framework build is the longest job in
+  # the plan, and a shared lane would wait on it.
+  lane: isolated
+  # The Worker's SECRETS, each read at request time ($env/dynamic/private),
+  # never inlined. The sign-in providers' client ids and secrets — the nine
+  # upstream's .env.example names, GitHub first — stored per environment as
+  # the product's secrets (README → Sign-in providers). BEST-EFFORT,
+  # wire-now-seed-later: a key nobody has stored is skipped when the job
+  # resolves its secrets (no env var, no failure), and a provider is offered
+  # only once all its keys are set (src/server/providers.ts), so a fresh
+  # product deploys and serves before its owner has an OAuth app at all.
+  # AUTH_SECRET, if stored, replaces the one the first deploy generates.
+  optionalSecretEnv:
+    AUTH_SECRET: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_SECRET"
+    AUTH_GITHUB_ID: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_GITHUB_ID"
+    AUTH_GITHUB_SECRET: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_GITHUB_SECRET"
+    AUTH_GOOGLE_ID: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_GOOGLE_ID"
+    AUTH_GOOGLE_SECRET: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_GOOGLE_SECRET"
+    AUTH_DISCORD_ID: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_DISCORD_ID"
+    AUTH_DISCORD_SECRET: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_DISCORD_SECRET"
+    AUTH_LINKEDIN_ID: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_LINKEDIN_ID"
+    AUTH_LINKEDIN_SECRET: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_LINKEDIN_SECRET"
+    AUTH_FACEBOOK_ID: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_FACEBOOK_ID"
+    AUTH_FACEBOOK_SECRET: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_FACEBOOK_SECRET"
+    AUTH_TWITTER_ID: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_TWITTER_ID"
+    AUTH_TWITTER_SECRET: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_TWITTER_SECRET"
+    AUTH_TWITCH_ID: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_TWITCH_ID"
+    AUTH_TWITCH_SECRET: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_TWITCH_SECRET"
+    AUTH_PINTEREST_ID: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_PINTEREST_ID"
+    AUTH_PINTEREST_SECRET: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_PINTEREST_SECRET"
+    AUTH_AUTH0_ID: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_AUTH0_ID"
+    AUTH_AUTH0_SECRET: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_AUTH0_SECRET"
+    AUTH_AUTH0_ISSUER: "secret://sveltekit-auth/sveltekit-auth/{{ .environment }}/AUTH_AUTH0_ISSUER"
+  subscribe:
+    environments:
+      - name: dev
+        profile: verify
+      - name: stage
+        profile: verify
+        profileRules:
+          - profile: deploy
+            when:
+              triggerRef: github-push-main
+      - name: prod
+        profile: verify
+        profileRules:
+          - profile: deploy
+            when:
+              triggerRef: github-push-main
+  parameters:
+    nodeVersion: "22"
+    pnpmVersion: "10.12.1"
+
+    workspaceDir: ../..
+    appDir: .
+
+    turboFilter: "@app/web"
+    # The committed config: worker name, compatibility date and flags, the
+    # Worker entry and the ASSETS binding over the adapter's output. Nothing
+    # to render: no binding but ASSETS (sessions are Auth.js's JWT cookies).
+    wranglerConfig: wrangler.jsonc
+
+    # @sveltejs/adapter-cloudflare emits the Worker as
+    # .svelte-kit/cloudflare/_worker.js and the static output (_app/* hashed
+    # assets, static/) beside it — both deploy in one `wrangler deploy`.
+    workerEntrypoint: .svelte-kit/cloudflare/_worker.js
+    assetsDir: .svelte-kit/cloudflare
+
+    # Per-env worker name: sveltekit-auth-web-{dev,stage,prod}.
+    workerName: sveltekit-auth-web
+    environmentAwareWorkerName: true
+
+    # The account's workers.dev subdomain; exported to the smoke step as
+    # ${WORKERS_DEV_SUBDOMAIN} and used to build ${DEPLOYED_URL}.
+    workersDevSubdomain: your-workers-subdomain
+
+    installCommand: pnpm install --frozen-lockfile
+    # Build, then hand the Worker its secrets. No secret reaches the build
+    # (`env -u`): the Worker reads each at request time. Then the providers'
+    # keys the environment has go to the Worker (`wrangler secret bulk`, the
+    # values over stdin) before the composition deploys it, and AUTH_SECRET
+    # with them when the Worker does not carry one yet — a fresh 32-byte key
+    # the FIRST deploy of each environment generates and every later deploy
+    # keeps (tooling/wire/worker-secrets.mjs --generate). Only the deploy lane
+    # holds a Cloudflare credential, so a verify lane builds the same and
+    # pushes nothing.
+    buildCommand: env -u AUTH_SECRET -u AUTH_GITHUB_ID -u AUTH_GITHUB_SECRET -u AUTH_GOOGLE_ID -u AUTH_GOOGLE_SECRET -u AUTH_DISCORD_ID -u AUTH_DISCORD_SECRET -u AUTH_LINKEDIN_ID -u AUTH_LINKEDIN_SECRET -u AUTH_FACEBOOK_ID -u AUTH_FACEBOOK_SECRET -u AUTH_TWITTER_ID -u AUTH_TWITTER_SECRET -u AUTH_TWITCH_ID -u AUTH_TWITCH_SECRET -u AUTH_PINTEREST_ID -u AUTH_PINTEREST_SECRET -u AUTH_AUTH0_ID -u AUTH_AUTH0_SECRET -u AUTH_AUTH0_ISSUER pnpm exec turbo run build --filter=@app/web && node ../../tooling/wire/worker-secrets.mjs --worker "sveltekit-auth-web-${ORUN_ENVIRONMENT}" --config wrangler.jsonc --generate AUTH_SECRET --secret AUTH_GITHUB_ID --secret AUTH_GITHUB_SECRET --secret AUTH_GOOGLE_ID --secret AUTH_GOOGLE_SECRET --secret AUTH_DISCORD_ID --secret AUTH_DISCORD_SECRET --secret AUTH_LINKEDIN_ID --secret AUTH_LINKEDIN_SECRET --secret AUTH_FACEBOOK_ID --secret AUTH_FACEBOOK_SECRET --secret AUTH_TWITTER_ID --secret AUTH_TWITTER_SECRET --secret AUTH_TWITCH_ID --secret AUTH_TWITCH_SECRET --secret AUTH_PINTEREST_ID --secret AUTH_PINTEREST_SECRET --secret AUTH_AUTH0_ID --secret AUTH_AUTH0_SECRET --secret AUTH_AUTH0_ISSUER
+
+    # Smoke: the home page renders to its end (`</html>` — the layout asks
+    # Auth.js for the session, so a Worker without AUTH_SECRET answers 500),
+    # and /auth/session answers `null` for a visitor with no session — Auth.js
+    # itself, in the Worker, with its secret bound. Not the site's name: that
+    # is the owner's to change. Read-only. Each response is buffered before
+    # it is tested so an early match cannot SIGPIPE curl.
+    smokeCommand: "html=$(curl -sfL \"${DEPLOYED_URL}/\") && echo \"${html}\" | grep -q '</html>' && session=$(curl -sf \"${DEPLOYED_URL}/auth/session\") && [ \"${session}\" = \"null\" ]"
+  labels:
+    team: platform
+    layer: delivery
+    surface: web
+    runtime: cloudflare
