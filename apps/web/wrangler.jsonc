@@ -1,0 +1,21 @@
+// The Worker's config, committed as written: the adapter's Worker entry and
+// the ASSETS binding over the adapter's output. There is nothing to render —
+// no database, no namespace, no bucket: sessions are Auth.js's encrypted JWT
+// cookies. The Worker's secrets (AUTH_SECRET and the sign-in providers' keys)
+// are not here: the deploy lane hands them to the Worker as Worker secrets
+// (tooling/wire/worker-secrets.mjs), and `vite dev` / `wrangler dev` read
+// them from .env. The workers-assets composition deploys one
+// environment per job with no wrangler `--env`, naming the Worker
+// sveltekit-auth-web-<env> itself.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sveltekit-auth-web",
+  "main": ".svelte-kit/cloudflare/_worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".svelte-kit/cloudflare",
+    "binding": "ASSETS"
+  },
+  "observability": { "enabled": true }
+}
