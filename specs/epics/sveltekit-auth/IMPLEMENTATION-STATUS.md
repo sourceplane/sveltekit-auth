@@ -5,8 +5,8 @@
 | SU0 — the spec | ✅ Shipped | [#1](https://github.com/sourceplane/sveltekit-auth/pull/1) |
 | SU1 — the auth app on Workers | ✅ Shipped | [#2](https://github.com/sourceplane/sveltekit-auth/pull/2) |
 | SU2 — the data | Not needed: JWT sessions persist nothing | — |
-| SU3 — ready to instantiate | In progress |  |
-| SU4 — a baseline | Not started |  |
+| SU3 — ready to instantiate | ✅ Shipped | [#3](https://github.com/sourceplane/sveltekit-auth/pull/3) |
+| SU4 — a baseline | ✅ Shipped, tagged `baseline-v1` | [#4](https://github.com/sourceplane/sveltekit-auth/pull/4) |
 
 ## What is proven, and how
 
@@ -15,7 +15,9 @@
 | The app builds into one Worker with Static Assets (702 KiB, 162 KiB gzipped) | `pnpm build` + `wrangler deploy --dry-run` |
 | The providers and their keys (all 26, in upstream's order; a blank key is no key; Auth0 needs its issuer, WorkOS its connection), the bindings winning over the dynamic env, the site's name | `apps/web/src/server/*.test.ts`, `apps/web/src/site.test.ts` |
 | The secret step: a verify lane pushes nothing; a first deploy mints a 43-character key that appears in no argument and no log; an existing key is kept; a failed list refuses; a stored key is used as is; the local `.env` is merged, 0600 | `apps/web/src/worker-secrets.test.ts`, against a stand-in `wrangler` |
-| Served by `wrangler dev` and `vite dev`: with no AUTH_SECRET `/auth/session` fails; with one every page renders, `/auth/session` is null, `/signin` says what to connect and its post goes back there, `/protected` denies; with GitHub's keys `/signin` offers GitHub and its post is GitHub's authorize URL with this site's callback; a session cookie sealed with the secret opens `/protected`; sign-out clears it | by hand (SU1); Baseline CI's end-to-end tier, next (SU4) |
+| A bootstrap places the site only, renamed throughout, with Auth.js's `SvelteKitAuth` import and call, the example's repository link and its ISC licence intact; its own plan deploys web to stage and prod with the site's Worker, smoke and secret refs | `testing/rebrand.test.sh`, `testing/leak.test.sh`, `testing/placement.test.sh` (SU4) |
+| The bootstrapped site installs, typechecks, lints, tests and builds at its landing; its stage lane builds (the secret step naming the Worker's keys and pushing none, no planted value in the bundle) and dry-deploys | `testing/e2e.test.sh` (SU4) |
+| Served by `wrangler dev` from the lane's tree: no AUTH_SECRET → the deploy's smoke refuses it; `secret:dev`'s → the smoke passes, every page, `/auth/session` null, `/signin` saying what to connect, `/protected` denied, a 404; GitHub's keys → the button, an authorize URL with this site's callback and PKCE, a session cookie sealed with the Worker's secret opening `/protected`, one sealed with another secret refused, sign-out clearing it | `testing/e2e.test.sh` (SU4) |
 | The secret push and the deploy on a real account | only a live bootstrap (risk SU-A) |
 
 ## Departures from the upstream example

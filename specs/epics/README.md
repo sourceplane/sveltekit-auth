@@ -7,6 +7,6 @@ folder is the adoption; the merge creates the epic in the workspace.
 
 | Epic | Cluster | Status | What it is |
 |------|---------|--------|------------|
-| [`sveltekit-auth/`](./sveltekit-auth/) | **SU** | In progress (SU3) | Auth.js's SvelteKit example — sign-in through any of 26 OAuth providers, each offered once its keys are stored, a protected page, JWT sessions with no database — on Cloudflare Workers + Static Assets, and an Orun baseline that instantiates it in one landing |
+| [`sveltekit-auth/`](./sveltekit-auth/) | **SU** | ✅ Shipped (`baseline-v1`); not yet live | Auth.js's SvelteKit example — sign-in through any of 26 OAuth providers, each offered once its keys are stored, a protected page, JWT sessions with no database — on Cloudflare Workers + Static Assets, and an Orun baseline that instantiates it in one landing |
 
 As-built ≠ intent: what shipped lives in each epic's `IMPLEMENTATION-STATUS.md`.

@@ -13,7 +13,7 @@ the monorepo wrapper, tests and the deploy contract.
 
 | Field | Value |
 |-------|-------|
-| Status | In progress — SU0 (#1), SU1 (#2) shipped; SU3 |
+| Status | ✅ Shipped (`baseline-v1`) — SU0 (#1), SU1 (#2), SU3 (#3), SU4 (#4); proven offline in Baseline CI; not yet live (risk SU-A) |
 | Cluster | **SU** (SU0, SU1, SU3, SU4; SU2, the data rung, is not needed) |
 | Owner(s) | `apps/web` · `tooling/wire/worker-secrets.mjs` |
 | Builds on | `sveltekit-boilerplate`: its scaffolding, its adapter-cloudflare build and its one-landing blueprint; the reference starters' `worker-secrets.mjs` |
