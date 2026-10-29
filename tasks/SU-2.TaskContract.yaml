@@ -1,0 +1,18 @@
+apiVersion: orun.io/v1
+kind: TaskContract
+metadata:
+  name: SU-2
+  title: "The auth app on Workers"
+spec:
+  goal: apps/web is Auth.js's SvelteKit example on Cloudflare Workers + Static Assets — its pages, header and footer, @auth/sveltekit with the example's 26 providers each offered once its keys are set, JWT sessions sealed with an AUTH_SECRET the deploy generates on each environment's Worker
+  affects:
+    - apps/web
+    - tooling/wire
+    - pnpm-lock.yaml
+    - pnpm-workspace.yaml
+    - README.md
+  doneWhen:
+    - `pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm build` are green
+    - under `wrangler dev`, with no secret `/auth/session` fails; with one it answers null, /signin says what to connect, and with GitHub's keys a sign-in goes to GitHub's authorize URL
+    - `wrangler deploy --dry-run` bundles the Worker
+  gates: []

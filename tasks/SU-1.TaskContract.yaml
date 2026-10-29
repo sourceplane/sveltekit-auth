@@ -1,0 +1,29 @@
+apiVersion: orun.io/v1
+kind: TaskContract
+metadata:
+  name: SU-1
+  title: "The spec"
+spec:
+  goal: The sveltekit-auth repository carries its intent, CI, shared tooling and spec index, and the epic's doc set and task contracts are on main — what the example is, how each piece maps to Cloudflare, the milestones, the risks
+  affects:
+    - intent.yaml
+    - package.json
+    - pnpm-workspace.yaml
+    - pnpm-lock.yaml
+    - turbo.json
+    - .gitignore
+    - .github/workflows/ci.yml
+    - .vscode
+    - tooling
+    - apps
+    - infra
+    - packages
+    - tests
+    - specs
+    - tasks
+    - README.md
+  doneWhen:
+    - intent.yaml names the placeholder workspace and ci.yml plans nothing while it does
+    - epic.yaml, README, design, implementation plan, risks and status are on main
+    - the four task contracts are on main
+  gates: []

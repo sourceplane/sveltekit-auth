@@ -1,0 +1,35 @@
+# The epic's declaration. metadata.name equals the directory name; metadata.key
+# is the task-key prefix this epic reserves (SU → SU-1, SU-2, …). Owner, target
+# date and health are the platform's — never written here.
+apiVersion: orun.io/v1
+kind: Epic
+metadata:
+  name: sveltekit-auth
+  key: SU
+spec:
+  title: "Auth.js's SvelteKit example on Cloudflare Workers"
+  summary: "Auth.js's SvelteKit example (nextauthjs/sveltekit-auth-example) — a home page, a sign-in page, a protected page and a sign-out over @auth/sveltekit with the example's 26 OAuth providers and JWT sessions — runs on Cloudflare Workers + Static Assets through @sveltejs/adapter-cloudflare, offers each provider only once its keys are stored (and says what to connect when none is), gets its AUTH_SECRET generated on each environment's Worker by the deploy instead of typed, and becomes an Orun baseline that takes a new site from nothing to live on stage and prod in one landing. No database: the sessions persist nothing server-side, so there is no data rung."
+  state: started
+  milestones:
+    - name: "SU0 — the spec"
+      exitCriteria:
+        - "the repository carries its intent, CI, tooling and spec index, and this doc set and the task contracts are on main"
+      tasks: [SU-1]
+    - name: "SU1 — the auth app on Workers"
+      exitCriteria:
+        - "apps/web is the upstream example on SvelteKit 2 and Svelte 5, built by @sveltejs/adapter-cloudflare into one Worker with Static Assets, @auth/sveltekit pinned exactly"
+        - "the site builds, deploys and passes its smoke with no provider connected; a provider is offered only when every key it takes is set, and /signin says what to connect"
+        - "AUTH_SECRET is generated once per environment on the Worker by the deploy lane and kept by every later deploy; no secret reaches the build, a log or the repository"
+        - "`pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm build` are green"
+      tasks: [SU-2]
+    - name: "SU3 — ready to instantiate"
+      exitCriteria:
+        - "the README says how to run, test, preview and deploy it, how to connect a provider, and how the example maps to this setup"
+        - "the as-built status records every departure from the upstream example"
+      tasks: [SU-3]
+    - name: "SU4 — a baseline"
+      exitCriteria:
+        - "blueprint.yaml (the console card) and repo-blueprint.yaml (the build) take a new site from nothing to live on stage and prod in one landing, then record it"
+        - "a site built from it carries the site only, renamed throughout to its own name, repository and Worker, with Auth.js's own names (SvelteKitAuth, sveltekit-auth-example) and the example's ISC licence intact"
+        - "Baseline CI is green: contract tests, generated component docs, the blueprint read by the pinned orun, the leak gate, the offline bootstrap and the end-to-end tier"
+      tasks: [SU-4]
