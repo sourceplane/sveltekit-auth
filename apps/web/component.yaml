@@ -68,6 +68,27 @@ spec:
           - profile: deploy
             when:
               triggerRef: github-push-main
+  # How the site runs itself for orun.work's live Preview tab
+  # (saas-parallel-baselining PB4): `orun preview` starts this, and a coding
+  # session keeps it running while it works, so the person watches it change
+  # as it is built. The dev server binds the box's loopback only, on a fixed
+  # port, and installs first, so a checkout the session has not installed yet
+  # still comes up.
+  # Before it starts, the site's own `secret:dev` step writes a random
+  # AUTH_SECRET into the checkout's git-ignored .env (and keeps it on a later
+  # start), as a local run does: Auth.js refuses every page without one. No
+  # provider's keys are set, so /signin offers none. --port 5173 (Vite's own
+  # default) over vite.config.ts's 3000, which a local run keeps; --strictPort
+  # makes Vite fail rather than move to another port when it is taken.
+  preview:
+    run:
+      - sh
+      - -c
+      - pnpm install --frozen-lockfile --prefer-offline --filter "@app/web..." && node ../../tooling/wire/worker-secrets.mjs --dev-vars .env --generate AUTH_SECRET --secret AUTH_SECRET && exec node_modules/.bin/vite dev --host 127.0.0.1 --port 5173 --strictPort
+    port: 5173
+    path: /
+    env:
+      NODE_OPTIONS: --max-old-space-size=512
   parameters:
     nodeVersion: "22"
     pnpmVersion: "10.12.1"
